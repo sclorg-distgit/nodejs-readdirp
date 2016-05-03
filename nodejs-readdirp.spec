@@ -1,68 +1,74 @@
 %{?scl:%scl_package nodejs-readdirp}
 %{!?scl:%global pkg_name %{name}}
+
+%global npm_name readdirp
 %{?nodejs_find_provides_and_requires}
+
 %global enable_tests 0
 
-Name:       %{?scl_prefix}nodejs-readdirp
-Version:    2.0.0
-Release:    11%{?dist}
-Summary:    Recursive version of Node's fs.readdir with a streaming API
-License:    MIT
-Group:      System Environment/Libraries
-URL:        https://github.com/thlorenz/readdirp
-Source0:    http://registry.npmjs.org/readdirp/-/readdirp-%{version}.tgz
+Name:		%{?scl_prefix}nodejs-%{npm_name}
+Version:	2.0.0
+Release:	13%{?dist}
+Summary:	Recursive version of fs.readdir with streaming api.
+Url:		https://github.com/thlorenz/readdirp
+Source0:	https://registry.npmjs.org/%{npm_name}/-/%{npm_name}-%{version}.tgz
+License:	MIT
 
-BuildArch:  noarch
-%if 0%{?fedora} >= 19
-ExclusiveArch: %{nodejs_arches} noarch
-%else
-ExclusiveArch: %{ix86} x86_64 %{arm} noarch
-%endif
+BuildArch:	noarch
+ExclusiveArch:	%{nodejs_arches} noarch
 
-BuildRequires:  %{?scl_prefix}runtime
+BuildRequires:	%{?scl_prefix}nodejs-devel
 
 %if 0%{?enable_tests}
-BuildRequires:  %{?scl_prefix}npm(graceful-fs)
-BuildRequires:  %{?scl_prefix}npm(minimatch)
-BuildRequires:  %{?scl_prefix}npm(tap)
-BuildRequires:  %{?scl_prefix}npm(through)
+BuildRequires:	npm(nave)
+BuildRequires:	npm(tap)
+BuildRequires:	npm(through2)
 %endif
 
 %description
-%{summary}.
+Recursive version of fs.readdir with streaming api.
 
 %prep
 %setup -q -n package
 
 %nodejs_fixdep minimatch
-%nodejs_fixdep event-stream
-%nodejs_fixdep tap-stream
 
 %build
 #nothing to do
 
 %install
-mkdir -p %{buildroot}%{nodejs_sitelib}/readdirp
-cp -pr package.json readdirp.js stream-api.js \
-    %{buildroot}%{nodejs_sitelib}/readdirp
+mkdir -p %{buildroot}%{nodejs_sitelib}/%{npm_name}
 
-%nodejs_symlink_deps
+cp -pr package.json *.js \
+	%{buildroot}%{nodejs_sitelib}/%{npm_name}
 
+%{nodejs_symlink_deps}
 
 %if 0%{?enable_tests}
-
 %check
-%nodejs_symlink_deps --check
-%__tap test/*.js
+%{nodejs_symlink_deps} --check
+(cd test && set -e; for t in ./*.js; do node $t; done)"
+nave use 0.8 npm run test-main
+nave use 0.10 npm run test-main
+nave use 0.12 npm run test-main
+nave use 2.4 npm run test-main
+npm run test-main && npm run test-0.8 && npm run test-0.10 && npm run test-0.12 && npm run test-2.4
+if [ -e $TRAVIS ]; then npm run test-all; else npm run test-main; fi
 %endif
 
 %files
-%{!?_licensedir:%global license %doc}
-%doc README.md examples/
-%license LICENSE
 %{nodejs_sitelib}/readdirp
 
+%doc README.md
+%license LICENSE
+
 %changelog
+* Tue May 03 2016 root - 2.0.0-13
+- Rebuild
+
+* Tue May 03 2016 root - 2.0.0-12
+- Fix dependencies
+
 * Tue Feb 16 2016 Zuzana Svetlikova <zsvetlik@redhat.com> - 2.0.0-11
 - Use macro in -runtime dependency
 
