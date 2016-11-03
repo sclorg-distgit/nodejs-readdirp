@@ -5,7 +5,7 @@
 
 Name:       %{?scl_prefix}nodejs-readdirp
 Version:    2.0.0
-Release:    9%{?dist}
+Release:    9.sc1%{?dist}
 Summary:    Recursive version of Node's fs.readdir with a streaming API
 License:    MIT
 Group:      System Environment/Libraries
